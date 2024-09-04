@@ -21,6 +21,7 @@ from nerfstudio.process_data import equirect_utils, process_data_utils
 from nerfstudio.process_data.colmap_converter_to_nerfstudio_dataset import ColmapConverterToNerfstudioDataset
 from nerfstudio.utils.rich_utils import CONSOLE
 
+import json
 
 @dataclass
 class ImagesToNerfstudioDataset(ColmapConverterToNerfstudioDataset):
@@ -73,7 +74,12 @@ class ImagesToNerfstudioDataset(ColmapConverterToNerfstudioDataset):
                 num_downscales=self.num_downscales,
                 same_dimensions=self.same_dimensions,
                 keep_image_dir=False,
+                recursive=self.eval_data is None
             )
+            # when self.eval_data is None, that means we are not passing in any eval data
+            # and in this case, we assume both train and eval are passed in, therefore we shall use
+            # recursive flag to True to incorporate both train and eval images
+            # ns-process-data images --data /workspace/scratch/20240901_exp1/temp_symlinks_0.1_train_and_test --output-dir nsprocessdataout --sfm-tool colmap  --colmap-model-path /workspace/scratch/20240901_exp1/0.1/eval_register/sparse/registered --skip-colmap --verbose
             if self.eval_data is not None:
                 eval_image_rename_map_paths = process_data_utils.copy_images(
                     self.eval_data,
@@ -84,12 +90,22 @@ class ImagesToNerfstudioDataset(ColmapConverterToNerfstudioDataset):
                     num_downscales=self.num_downscales,
                     same_dimensions=self.same_dimensions,
                     keep_image_dir=True,
+                    recursive=self.eval_data is None
                 )
                 image_rename_map_paths.update(eval_image_rename_map_paths)
+
+            print(f"self.data={self.data}")
+            print(image_rename_map_paths)
+
+            # Scott
+            string_dict = {str(k): str(v) for k, v in image_rename_map_paths.items()}
+            with open(self.output_dir / "image_frame_mapping.json", "w", encoding="utf-8") as f:
+                json.dump(string_dict, f, indent=4)
 
             image_rename_map = dict(
                 (a.relative_to(self.data).as_posix(), b.name) for a, b in image_rename_map_paths.items()
             )
+
             num_frames = len(image_rename_map)
             summary_log.append(f"Starting with {num_frames} images")
 

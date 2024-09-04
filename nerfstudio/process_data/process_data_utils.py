@@ -395,6 +395,7 @@ def copy_images(
     crop_factor: Tuple[float, float, float, float] = (0.0, 0.0, 0.0, 0.0),
     num_downscales: int = 0,
     same_dimensions: bool = True,
+    recursive: bool = False,
 ) -> OrderedDict[Path, Path]:
     """Copy images from a directory to a new directory.
 
@@ -409,7 +410,7 @@ def copy_images(
         The mapping from the original filenames to the new ones.
     """
     with status(msg="[bold yellow]Copying images...", spinner="bouncingBall", verbose=verbose):
-        image_paths = list_images(data)
+        image_paths = list_images(data, recursive=recursive)
 
         if len(image_paths) == 0:
             CONSOLE.log("[bold red]:skull: No usable images in the data folder.")
