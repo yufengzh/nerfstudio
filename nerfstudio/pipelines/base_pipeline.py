@@ -402,6 +402,9 @@ class VanillaPipeline(Pipeline):
                 idx = idx + 1
 
         metrics_dict = {}
+        print(f"{data_loader=}")
+        print(f"{image_prefix=}")
+        print(f"{metrics_dict_list=}")
         for key in metrics_dict_list[0].keys():
             if get_std:
                 key_std, key_mean = torch.std_mean(
